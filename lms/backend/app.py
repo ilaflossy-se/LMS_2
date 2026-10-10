@@ -60,7 +60,6 @@ def oidc():
 
 @app.get("/api/health")
 def health(): return jsonify(ok=True)
-
 @app.get("/api/me")
 @auth
 def me(): return jsonify(uj(g.user))
