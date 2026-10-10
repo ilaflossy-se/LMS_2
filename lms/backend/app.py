@@ -4,7 +4,9 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "postgresql://lms:lms@localhost:5432/lms").replace("postgres://", "postgresql://", 1)
+import re
+_url = os.getenv("DATABASE_URL", "postgresql://lms:lms@localhost:5432/lms")
+app.config["SQLALCHEMY_DATABASE_URI"] = re.sub(r"^postgres(ql)?(\+\w+)?://", "postgresql+psycopg2://", _url)
 SECRET = os.getenv("SECRET_KEY", "dev")
 CORS(app)
 db = SQLAlchemy(app)
@@ -55,6 +57,9 @@ def oidc():
     if not u: return err("Account not found", 404)
     t = jwt.encode({"uid": u.id, "exp": datetime.datetime.utcnow() + datetime.timedelta(days=7)}, SECRET, algorithm="HS256")
     return jsonify(token=t, user=uj(u))
+
+@app.get("/api/health")
+def health(): return jsonify(ok=True)
 
 @app.get("/api/me")
 @auth
